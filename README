@@ -34,11 +34,14 @@ Prerequisites:
 
 ========================================================================
 
-USAGE:
 This utility marks the uniquely mapped reads in a bam file by updating the FLAG field (bit 0x800) or by updating the NH tag (see SAMtools)
 
-It consists of two slightly different implementations, bamflag and bamflag2; bamflag is slightly faster but takes more memory; bamflag2 is less fast but takes less memory
+It consists of three slightly different implementations, bamflag, bamflag2, and bamflag3; 
+  - bamflag is slightly faster but takes more memory
+  - bamflag2 is less fast but takes less memory
+  - bamflag3 is under testing
 
+USAGE:
 ./bamflag -in <bam_file> -out <bam_file> [-u default = NO] [-v default = NO] [-m <mode> default = 1] [-lim n_reads, default = NONE]
 	-in:	input BAM file
 	-out:	output BAM file

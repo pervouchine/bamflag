@@ -4,7 +4,7 @@ OPTN=-lz
 
 .PHONY: all
 
-all: bamflag bamflag2
+all: bamflag bamflag2 bamflag3
 
 EXPORT = bamflag-1.1
 
@@ -31,13 +31,16 @@ $(SAMDIR)libbam.a:
 	exit 1	
 
 progressbar.o:	progressbar.c progressbar.h
-	gcc -c progressbar.c 
+	$(GCC) -c progressbar.c 
 
 node.o: node.c node.h
-	gcc -c node.c
+	$(GCC) -c node.c
 
 node2.o: node2.c node2.h
-	gcc -c node2.c
+	$(GCC) -c node2.c
+
+node3.o: node3.c node3.h
+	$(GCC) -c node3.c
 
 bamflag: bamflag.c progressbar.o $(SAMDIR)libbam.a node.o
 	$(GCC) $(OPTN) -I $(SAMDIR) bamflag.c progressbar.o node.o $(SAMDIR)libbam.a -o bamflag
@@ -45,5 +48,9 @@ bamflag: bamflag.c progressbar.o $(SAMDIR)libbam.a node.o
 bamflag2: bamflag2.c progressbar.o $(SAMDIR)libbam.a node2.o
 	$(GCC) $(OPTN) -I $(SAMDIR) bamflag2.c progressbar.o node2.o $(SAMDIR)libbam.a -o bamflag2
 
+bamflag3: bamflag3.c progressbar.o $(SAMDIR)libbam.a node3.o
+	$(GCC) $(OPTN) -I $(SAMDIR) bamflag3.c progressbar.o node3.o $(SAMDIR)libbam.a -o bamflag3
+
+
 clean:
-	rm -f -r progressbar.o node.o node2.o bamflag bamflag2
+	rm -f -r progressbar.o node.o node2.o bamflag bamflag2 bamflag3
