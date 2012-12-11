@@ -4,9 +4,9 @@ OPTN=-lz
 
 .PHONY: all
 
-all: bamflag bamflag2 bamflag3
+all: bamflag bamflag2
 
-EXPORT = bamflag-1.1
+EXPORT = bamflag-1.2
 
 export:
 	mkdir $(EXPORT)/
@@ -39,18 +39,11 @@ node.o: node.c node.h
 node2.o: node2.c node2.h
 	$(GCC) -c node2.c
 
-node3.o: node3.c node3.h
-	$(GCC) -c node3.c
-
 bamflag: bamflag.c progressbar.o $(SAMDIR)libbam.a node.o
 	$(GCC) $(OPTN) -I $(SAMDIR) bamflag.c progressbar.o node.o $(SAMDIR)libbam.a -o bamflag
 
 bamflag2: bamflag2.c progressbar.o $(SAMDIR)libbam.a node2.o
 	$(GCC) $(OPTN) -I $(SAMDIR) bamflag2.c progressbar.o node2.o $(SAMDIR)libbam.a -o bamflag2
 
-bamflag3: bamflag3.c progressbar.o $(SAMDIR)libbam.a node3.o
-	$(GCC) $(OPTN) -I $(SAMDIR) bamflag3.c progressbar.o node3.o $(SAMDIR)libbam.a -o bamflag3
-
-
 clean:
-	rm -f -r progressbar.o node.o node2.o bamflag bamflag2 bamflag3
+	rm -f -r progressbar.o node.o node2.o bamflag bamflag2
