@@ -30,20 +30,11 @@ $(SAMDIR)libbam.a:
 	# don't forget to update the SAMDIR varibale in this makefile
 	exit 1	
 
-progressbar.o:	progressbar.c progressbar.h
-	$(GCC) -c progressbar.c 
+bamflag: bamflag.c $(SAMDIR)libbam.a
+	$(GCC) $(OPTN) -I $(SAMDIR) bamflag.c $(SAMDIR)libbam.a -o bamflag
 
-node.o: node.c node.h
-	$(GCC) -c node.c
-
-node2.o: node2.c node2.h
-	$(GCC) -c node2.c
-
-bamflag: bamflag.c progressbar.o $(SAMDIR)libbam.a node.o
-	$(GCC) $(OPTN) -I $(SAMDIR) bamflag.c progressbar.o node.o $(SAMDIR)libbam.a -o bamflag
-
-bamflag2: bamflag2.c progressbar.o $(SAMDIR)libbam.a node2.o
-	$(GCC) $(OPTN) -I $(SAMDIR) bamflag2.c progressbar.o node2.o $(SAMDIR)libbam.a -o bamflag2
+bamflag2: bamflag2.c $(SAMDIR)libbam.a
+	$(GCC) $(OPTN) -I $(SAMDIR) bamflag2.c $(SAMDIR)libbam.a -o bamflag2
 
 clean:
-	rm -f -r progressbar.o node.o node2.o bamflag bamflag2
+	rm -f -r bamflag bamflag2

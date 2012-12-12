@@ -22,8 +22,6 @@
 #include <time.h>
 #include <sys/ioctl.h>
 #include <bam.h>
-#include "progressbar.h"
-#include "node2.h"
 
 #define MAXFILEBUFFLENGTH 1000
 #define INFTY 65535
@@ -31,8 +29,107 @@
 #define COUNT 10
 
 #define BAM_UNIQUE_MAP 0x800
+
 #define UPDATE_NH_TAG 1
 #define MARK_FLAG_FIELD 2 
+#define SUPPRESS_MULTI 3
+
+/************************************************************************************************************************************/
+
+struct elem {
+    char character;
+    int  count;
+    struct elem* next;
+    struct elem* tree;
+};
+
+typedef struct elem node_type;
+
+/************************************************************************************************************************************/
+
+void add_str(node_type **node, char *str) {
+    node_type** ptr = node;
+    node_type* new = NULL;
+
+    char c = str[0];
+
+    if(c==0) return;
+
+    while((*ptr)!=NULL) {
+        if((*ptr)->character < c) ptr = &((*ptr)->next); else break;
+    }
+
+    int flag = 1;
+    if((*ptr)!=NULL) {
+        if((*ptr)->character == c) {
+            flag=0;
+        }
+    }
+
+    if(flag) {
+        new = (node_type*) malloc(sizeof(node_type));
+        new->character = c;
+        new->count = 0;
+        new->next = (*ptr);
+        new->tree = NULL;
+        (*ptr) = new;
+    }
+
+    if(str[1]==0) {
+        (*ptr)->count++;
+    }
+    else {
+        add_str(&(*ptr)->tree, str + 1);
+    }
+}
+
+void retrieve(node_type *node, char *pref) {
+    node_type* current = node;
+    char chr[256];
+    int i = 0;
+    while(current!=NULL) {
+        if(current->count > 0) {
+            printf("%s\t%i\n", pref, current->count);
+        }
+        else {
+            strcpy(chr,pref);
+            int l = strlen(chr);
+            chr[l] = current->character;
+            chr[l+1]=0;
+            if(current->tree!=NULL) {
+                retrieve(current->tree, chr);
+            }
+        }
+        current = current->next;
+        i++;
+    }
+}
+
+int recall_count(node_type *node, char *str) {
+    node_type* current = node;
+
+    while(current!=NULL) {
+        if(current->character == str[0]) {
+            return(str[1]==0 ? current->count : recall_count(current->tree, str+1));
+        }
+        current = current->next;
+    }
+
+    return(0);
+}
+
+void destroy(node_type *node) {
+    node_type* current = node;
+
+    while(current!=NULL) {
+        if(current->tree!=NULL) destroy(current->tree);
+        node_type* next = current->next;
+        free(current);
+        current = next;
+    }
+}
+
+/************************************************************************************************************************************/
 
 int main(int argc,char* argv[]) {
     time_t timestamp, current;
@@ -75,11 +172,11 @@ int main(int argc,char* argv[]) {
     timestamp = time(NULL);
 
     if(argc==1) {
-	fprintf(stderr, "This utility marks the uniquely mapped reads in a bam file by updating the FLAG field (bit 0x800) or by updating the NH tag (see SAMtools)\n", argv[0]);
+        fprintf(stderr, "This utility marks the uniquely mapped reads in a bam file by updating the FLAG field (bit 0x800) or by updating the NH tag (see SAMtools)\n", argv[0]);
         fprintf(stderr, "%s -in <bam_file> -out <bam_file> [-u default = NO] [-v default = NO] [-m <mode> default = %i] [-lim n_reads, default = NONE]\n",argv[0], mode);
-	fprintf(stderr, "-in:\tinput BAM file\n-out:\toutput BAM file\n-m:\t%i = mark NH tag, %i = mark FLAG field, %i = do both\n", UPDATE_NH_TAG, MARK_FLAG_FIELD, UPDATE_NH_TAG+MARK_FLAG_FIELD);
-	fprintf(stderr, "-v:\tsuppress verbose output\n-u:\ttreat all reads as read1 (unstranded)\n-lim:\tprocess only first n_reads (for debugging)\n");
-	fprintf(stderr, "A short report on read counts is written to stderr.\n");
+        fprintf(stderr, "-in:\tinput BAM file\n-out:\toutput BAM file\n-m:\t%i = mark NH tag, %i = mark FLAG field, %i = output only unique reads\n",UPDATE_NH_TAG,MARK_FLAG_FIELD,SUPPRESS_MULTI);
+        fprintf(stderr, "-v:\tsuppress verbose output\n-u:\ttreat all reads as read1 (unstranded)\n-lim:\tprocess only first n_reads (for debugging)\n");
+        fprintf(stderr, "A short report on read counts is written to stderr.\n");
         exit(1);
     }
 
@@ -109,8 +206,9 @@ int main(int argc,char* argv[]) {
         exit(1);
     }
 
-    if(verbose && (mode & UPDATE_NH_TAG))   fprintf(stderr,"[mode: update NH tag]\n");
-    if(verbose && (mode & MARK_FLAG_FIELD)) fprintf(stderr,"[mode: mark FLAG field]\n");
+    if(verbose && (mode == UPDATE_NH_TAG))   fprintf(stderr,"[mode: update NH tag]\n");
+    if(verbose && (mode == MARK_FLAG_FIELD)) fprintf(stderr,"[mode: mark FLAG field]\n");
+    if(verbose && (mode == SUPPRESS_MULTI))  fprintf(stderr,"[mode: output only uniquely-mapped reads]\n");
 
     /*** pass 1 ***/
     if(verbose) fprintf(stderr,"[pass 1, reading %s", inp_file_name);
@@ -181,7 +279,13 @@ int main(int argc,char* argv[]) {
 	    if(i==1) c->flag = c->flag | BAM_UNIQUE_MAP;
 	}
 
-	bam_write1(bam_output, b);
+        if(mode == SUPPRESS_MULTI) {
+            if(i==1) bam_write1(bam_output, b);
+        }
+        else {
+            bam_write1(bam_output, b);
+        }
+
 	if(i>=COUNT) i=COUNT-1;
 	if(i>1) if(count_table[read][i]==0 && examples) fprintf(stderr, "(read=%i, count=%i, id=%s)",read,i,pc);
 	count_table[read][i]++;
