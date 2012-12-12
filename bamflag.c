@@ -189,7 +189,7 @@ int main(int argc,char* argv[]) {
 	    if(strcmp(pc+1,"u") == 0) 	n_reads = 1;
 	    if(strcmp(pc+1,"v") == 0) 	verbose = 0;
 	    if(strcmp(pc+1,"e") == 0)   examples= 1;
-	    if(strcmp(pc+1,"m") == 0)	sscanf(argv[++i], "%s", &mode);
+	    if(strcmp(pc+1,"m") == 0)	sscanf(argv[++i], "%i", &mode);
 	    if(strcmp(pc+1,"lim") == 0) sscanf(argv[++i], "%i", &limit);
 	}
     }
