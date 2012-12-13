@@ -68,6 +68,10 @@ void add_str(node_type **node, char *str) {
 
     if(flag) {
         new = (node_type*) malloc(sizeof(node_type));
+        if(new == NULL) {
+            fprintf(stderr, "[ERROR: cannot allocate memory for a new node, exiting]");
+            exit(1);
+        }
         new->character = c;
         new->count = 0;
         new->next = (*ptr);
