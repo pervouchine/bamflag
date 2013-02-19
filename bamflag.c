@@ -177,7 +177,7 @@ int main(int argc,char* argv[]) {
     timestamp = time(NULL);
 
     if(argc==1) {
-	fprintf(stderr, "This utility marks the uniquely mapped reads in a bam file by updating the FLAG field (bit 0x800) or by updating the NH tag (see SAMtools)\n", argv[0]);
+	fprintf(stderr, "This utility counts the number of hits (NH) in a bam file and marks reads by updating the NH tag or FLAG field (bit 0x800) (see SAMtools)\n", argv[0]);
         fprintf(stderr, "%s -in <bam_file> -out <bam_file> [-u default = NO] [-v default = NO] [-m <mode> default = %i] [-lim n_reads, default = NONE]\n",argv[0], mode);
 	fprintf(stderr, "-in:\tinput BAM file\n-out:\toutput BAM file\n-m:\t%i = mark NH tag, %i = mark FLAG field, %i = output only unique reads\n",UPDATE_NH_TAG,MARK_FLAG_FIELD,SUPPRESS_MULTI);
 	fprintf(stderr, "-v:\tsuppress verbose output\n-u:\ttreat all reads as read1 (unstranded)\n-lim:\tprocess only first n_reads (for debugging)\n");
