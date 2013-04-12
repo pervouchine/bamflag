@@ -146,14 +146,11 @@ int main(int argc,char* argv[]) {
     int count_table[2][COUNT];
 
     bamFile bam_input;
-    bamFile bam_output;
     bam_header_t *header;
     bam1_t* b;
     bam1_core_t *c;
 
-
     char inp_file_name[MAXFILEBUFFLENGTH]="";
-    char out_file_name[MAXFILEBUFFLENGTH]="";
     char buff[MAXFILEBUFFLENGTH];
     char chr[MAXFILEBUFFLENGTH];
     int ref_id, ref_id_prev, label;
@@ -170,31 +167,24 @@ int main(int argc,char* argv[]) {
 
     unsigned int curr_pos, last_pos;
 
-    int mode = UPDATE_NH_TAG;
-
     /** reading input from the command line **/
 
     timestamp = time(NULL);
 
     if(argc==1) {
-	fprintf(stderr, "This utility counts the number of hits (NH) in a bam file and marks reads by updating the NH tag or FLAG field (bit 0x800) (see SAMtools)\n", argv[0]);
-        fprintf(stderr, "%s -in <bam_file> -out <bam_file> [-u default = NO] [-v default = NO] [-m <mode> default = %i] [-lim n_reads, default = NONE]\n",argv[0], mode);
-	fprintf(stderr, "-in:\tinput BAM file\n-out:\toutput BAM file\n-m:\t%i = mark NH tag, %i = mark FLAG field, %i = output only unique reads\n",UPDATE_NH_TAG,MARK_FLAG_FIELD,SUPPRESS_MULTI);
-	fprintf(stderr, "-v:\tsuppress verbose output\n-u:\ttreat all reads as read1 (single-end)\n-lim:\tprocess only first n_reads (for debugging)\n");
-	fprintf(stderr, "A short report on read counts is written to stderr.\n");
+	fprintf(stderr, "This utility counts takes a BAM file and a FASTQ (stdin) and selectes reads that have not been mapped in BAM\n", argv[0]);
+        fprintf(stderr, "%s -in <bam_file> -read <0/1> -u\n",argv[0]);
         exit(1);
     }
 
     for(i=1;i<argc;i++) {
         pc = argv[i];
         if(*pc == '-') {
-	    if(strcmp(pc+1,"in")  == 0) sscanf(argv[++i], "%s", &inp_file_name[0]);
-	    if(strcmp(pc+1,"out") == 0) sscanf(argv[++i], "%s", &out_file_name[0]);
-	    if(strcmp(pc+1,"u") == 0) 	n_reads = 1;
-	    if(strcmp(pc+1,"v") == 0) 	verbose = 0;
-	    if(strcmp(pc+1,"e") == 0)   examples= 1;
-	    if(strcmp(pc+1,"m") == 0)	sscanf(argv[++i], "%i", &mode);
-	    if(strcmp(pc+1,"lim") == 0) sscanf(argv[++i], "%i", &limit);
+	    if(strcmp(pc+1,"in")  == 0)  sscanf(argv[++i], "%s", &inp_file_name[0]);
+	    if(strcmp(pc+1,"read") == 0) sscanf(argv[++i], "%i", &read);
+	    if(strcmp(pc+1,"v") == 0) 	 verbose = 0;
+            if(strcmp(pc+1,"u") == 0)    n_reads = 1;
+	    if(strcmp(pc+1,"lim") == 0)  sscanf(argv[++i], "%i", &limit);
 	}
     }
 
@@ -211,17 +201,7 @@ int main(int argc,char* argv[]) {
         exit(1);
     }
 
-    bam_output = bam_open(out_file_name, "w");
-    if(bam_output==NULL) {
-        fprintf(stderr,"Output BAM file can't be opened, exiting\n");
-        exit(1);
-    }
-    bam_header_write(bam_output, header);
-
-    if(verbose && (mode == UPDATE_NH_TAG))   fprintf(stderr,"[mode: update NH tag]\n");
-    if(verbose && (mode == MARK_FLAG_FIELD)) fprintf(stderr,"[mode: mark FLAG field]\n");
-    if(verbose && (mode == SUPPRESS_MULTI))  fprintf(stderr,"[mode: output only uniquely-mapped reads]\n");
-
+    if(verbose)   fprintf(stderr,"[read=%i]\n",read);
 
     /*** pass 1 ***/
     if(verbose) fprintf(stderr,"[pass 1, reading %s", inp_file_name);
@@ -232,13 +212,12 @@ int main(int argc,char* argv[]) {
 	ref_id = c->tid;
 	if(ref_id<0) continue;
 
-
         read = (c->flag & BAM_FREAD1) ? 0 : 1;
 	if(n_reads == 1) read = 0; 
 
 	pc =  bam1_qname(b);
 	add_str(&root, pc, read);
-	if(!(c->flag & BAM_FUNMAP)) read_count[read]++;
+	read_count[read]++;
 	n++;
 	if(limit>0 && n>limit) break;
     }
@@ -247,91 +226,33 @@ int main(int argc,char* argv[]) {
     bam_destroy1(b);
     if(verbose) for(read = 0;read < n_reads; read++) fprintf(stderr,", read%i=%i", read, read_count[read]);
     if(verbose) fprintf(stderr,"]\n");
+
     /*** end of pass 1 ***/
 
 
     /*** pass 2 ***/
-    if(verbose) fprintf(stderr,"[pass 2, reading %s, writing to %s", inp_file_name, out_file_name);
-    bam_input = bam_open(inp_file_name, "r");
-    header = bam_header_read(bam_input);
+    if(verbose) fprintf(stderr,"[reading fastq from STDIN, output ro STDOUT");
 
-    b = bam_init1();
-    for(i=0;i<COUNT;i++) for(read = 0;read < n_reads; read++) count_table[read][i]=0;
-    n = 0;
-    while(bam_read1(bam_input, b)>=0) {
-        c   = &b->core;
-        ref_id = c->tid;
-        if(ref_id<0) continue;
-
-	read = (c->flag & BAM_FREAD1) ? 0 : 1;
-        if(n_reads == 1) read = 0;
-
-        pc =  bam1_qname(b);
-	i = recall_count(root, pc, read);
-
-	if(mode == UPDATE_NH_TAG) {
-	    ptr = bam_aux_get(b, "NH");
-	    if(ptr==NULL) {
-		tag_value = (uint8_t)i;
-	    	bam_aux_append(b, "NH", 'I', 4, &tag_value);
-	    }
-	    else {
-		(*(ptr+1)) = (uint8_t)i;
-	    }
+    while(fgets(&buff[0],MAXFILEBUFFLENGTH,stdin)) {
+	if(buff[0]=='@') {
+            i = recall_count(root, &buff[1], read);
+	    if(i==0) {
+		printf("%s",&buff[0]);
+		for(j=0;j<3;j++) {
+		    fgets(&buff[0],MAXFILEBUFFLENGTH,stdin);
+		    printf("%s",&buff[0]);
+		}
+	    }	    
 	}
-
-	if(mode == MARK_FLAG_FIELD) {
-	    c->flag = (c->flag | BAM_UNIQUE_MAP) ^ BAM_UNIQUE_MAP;
-	    if(i==1) c->flag = c->flag | BAM_UNIQUE_MAP;
-	}
-
-	if(mode == SUPPRESS_MULTI) {
-	    if(i==1) bam_write1(bam_output, b);
-	}
-	else {
-	    bam_write1(bam_output, b);
-	}
-
-	if(i>=COUNT) i=COUNT-1;
-	if(i>1) if(count_table[read][i]==0 && examples) fprintf(stderr, "(read=%i, count=%i, id=%s)",read,i,pc);
-	count_table[read][i]++;
-	n++;
-	if(limit>0 && n>limit) break;
     }
-    bam_header_destroy(header);
-    bam_close(bam_input);
-    bam_close(bam_output);
-    bam_destroy1(b);
     if(verbose) fprintf(stderr,"]\n");
     /*** end of pass 2 ***/
-
 
     if(verbose) fprintf(stderr,"[destroying data structures");
     destroy(root);
     if(verbose) fprintf(stderr,"]\n");
 
     current = time(NULL);
-
-    /*** output ***/
-    fprintf(stderr,"count\t");
-    for(read = 0;read < n_reads; read++) fprintf(stderr, "read%i\t(%)\t", 1 + read);
-    fprintf(stderr,"\n");
-    for(i=0;i<8*(n_reads*2+1);i++) fprintf(stderr, "-");
-    fprintf(stderr,"\n");
-
-    for(i=1;i<COUNT;i++) {
-	if(i==COUNT-1) fprintf(stderr,"%i+\t", i); else fprintf(stderr,"%i\t", i);
-	for(read = 0;read < n_reads; read++) {
-	    fprintf(stderr, "%i\t%2.1lf\t",count_table[read][i], (double)100*count_table[read][i]/read_count[read]);
-	}
-	fprintf(stderr,"\n");
-    }
-
-    for(i=0;i<8*(n_reads*2+1);i++) fprintf(stderr, "-");
-    fprintf(stderr,"\ntotal\t");
-    for(read = 0;read < n_reads; read++) fprintf(stderr, "%i\t100\t", read_count[read]);
-    fprintf(stderr,"\n");
-    /*** end of output ***/
 
     if(verbose) fprintf(stderr,"[completed in %1.0lf seconds]\n",difftime(current,timestamp));
 

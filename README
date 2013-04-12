@@ -72,4 +72,8 @@ count   read1   (%)     read2   (%)
 total   109846371       100     112138468       100     
 [completed in 5319 seconds]
 
+========================================================================
 
+
+2013-04-12
+	Corrected: unmapped reads and not counted how many time they are present

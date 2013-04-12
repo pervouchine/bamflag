@@ -228,7 +228,7 @@ int main(int argc,char* argv[]) {
 
 	pc =  bam1_qname(b);
 	add_str(&root[read], pc);
-	read_count[read]++;
+	if(!(c->flag & BAM_FUNMAP)) read_count[read]++;
 	n++;
 	if(limit>0 && n>limit) break;
     }

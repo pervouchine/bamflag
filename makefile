@@ -4,7 +4,7 @@ OPTN=-lz
 
 .PHONY: all
 
-all: bamflag bamflag2
+all: bamflag bamflag2 fastq_unmapped
 
 EXPORT = bamflag-1.2
 
@@ -36,5 +36,8 @@ bamflag: bamflag.c $(SAMDIR)libbam.a
 bamflag2: bamflag2.c $(SAMDIR)libbam.a
 	$(GCC) $(OPTN) -I $(SAMDIR) bamflag2.c $(SAMDIR)libbam.a -o bamflag2
 
+fastq_unmapped : fastq_unmapped.c $(SAMDIR)libbam.a
+	$(GCC) $(OPTN) -I $(SAMDIR) fastq_unmapped.c $(SAMDIR)libbam.a -o fastq_unmapped
+
 clean:
-	rm -f -r bamflag bamflag2
+	rm -f -r bamflag bamflag2 fastq_unmapped
