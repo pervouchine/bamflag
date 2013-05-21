@@ -134,6 +134,15 @@ void destroy(node_type *node) {
     }
 }
 
+void remove_slash12(char *str) {
+    /* removes /1 /2 at the end of the string*/
+    int n;
+    n = strlen(str);
+    if(n>2) {
+        if(str[n-2]=='/') str[n-2]=0;
+    }
+}
+
 /*************************************************************************************************************************************************/
 
 int main(int argc,char* argv[]) {
@@ -237,6 +246,7 @@ int main(int argc,char* argv[]) {
 	if(n_reads == 1) read = 0; 
 
 	pc =  bam1_qname(b);
+        remove_slash12(pc);
 	add_str(&root, pc, read);
 	if(!(c->flag & BAM_FUNMAP)) read_count[read]++;
 	n++;
@@ -267,6 +277,7 @@ int main(int argc,char* argv[]) {
         if(n_reads == 1) read = 0;
 
         pc =  bam1_qname(b);
+	remove_slash12(pc);
 	i = recall_count(root, pc, read);
 
 	if(mode == UPDATE_NH_TAG) {

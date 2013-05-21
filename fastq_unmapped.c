@@ -134,6 +134,16 @@ void destroy(node_type *node) {
     }
 }
 
+
+void remove_slash12(char *str) {
+    /* removes /1 /2 at the end of the string*/
+    int n;
+    n = strlen(str);
+    if(n>2) {
+	if(str[n-2]=='/') str[n-2]=0;
+    }
+}
+
 /*************************************************************************************************************************************************/
 
 int main(int argc,char* argv[]) {
@@ -152,6 +162,8 @@ int main(int argc,char* argv[]) {
 
     char inp_file_name[MAXFILEBUFFLENGTH]="";
     char buff[MAXFILEBUFFLENGTH];
+    char aux[3][MAXFILEBUFFLENGTH];
+    char name[MAXFILEBUFFLENGTH];
     char chr[MAXFILEBUFFLENGTH];
     int ref_id, ref_id_prev, label;
     char ch;
@@ -162,8 +174,8 @@ int main(int argc,char* argv[]) {
     int n_reads = 2;
     int read_count[2] = {0,0};
     int read;
-    int limit=0;
-    int examples=0;
+
+    int read_has_to_be=1;
 
     unsigned int curr_pos, last_pos;
 
@@ -181,10 +193,9 @@ int main(int argc,char* argv[]) {
         pc = argv[i];
         if(*pc == '-') {
 	    if(strcmp(pc+1,"in")  == 0)  sscanf(argv[++i], "%s", &inp_file_name[0]);
-	    if(strcmp(pc+1,"read") == 0) sscanf(argv[++i], "%i", &read);
+	    if(strcmp(pc+1,"read") == 0) sscanf(argv[++i], "%i", &read_has_to_be);
 	    if(strcmp(pc+1,"v") == 0) 	 verbose = 0;
             if(strcmp(pc+1,"u") == 0)    n_reads = 1;
-	    if(strcmp(pc+1,"lim") == 0)  sscanf(argv[++i], "%i", &limit);
 	}
     }
 
@@ -201,12 +212,12 @@ int main(int argc,char* argv[]) {
         exit(1);
     }
 
-    if(verbose)   fprintf(stderr,"[read=%i]\n",read);
+    read_has_to_be--;
+    if(verbose)   fprintf(stderr,"[read=%i]\n",read_has_to_be);
 
     /*** pass 1 ***/
     if(verbose) fprintf(stderr,"[pass 1, reading %s", inp_file_name);
     b = bam_init1();
-    n = 0;
     while(bam_read1(bam_input, b)>=0) {
         c   = &b->core;
 	ref_id = c->tid;
@@ -215,11 +226,12 @@ int main(int argc,char* argv[]) {
         read = (c->flag & BAM_FREAD1) ? 0 : 1;
 	if(n_reads == 1) read = 0; 
 
-	pc =  bam1_qname(b);
-	add_str(&root, pc, read);
-	read_count[read]++;
-	n++;
-	if(limit>0 && n>limit) break;
+	if(read == read_has_to_be) {
+	    pc =  bam1_qname(b);
+	    remove_slash12(pc);
+	    add_str(&root, pc, read);
+            if(!(c->flag & BAM_FUNMAP)) read_count[read]++;
+	}
     }
     bam_header_destroy(header);
     bam_close(bam_input);
@@ -232,20 +244,22 @@ int main(int argc,char* argv[]) {
 
     /*** pass 2 ***/
     if(verbose) fprintf(stderr,"[reading fastq from STDIN, output ro STDOUT");
-
+    n = m = 0;
     while(fgets(&buff[0],MAXFILEBUFFLENGTH,stdin)) {
-	if(buff[0]=='@') {
-            i = recall_count(root, &buff[1], read);
-	    if(i==0) {
-		printf("%s",&buff[0]);
-		for(j=0;j<3;j++) {
-		    fgets(&buff[0],MAXFILEBUFFLENGTH,stdin);
-		    printf("%s",&buff[0]);
-		}
-	    }	    
+	for(j=0;j<3;j++) fgets(aux[j],MAXFILEBUFFLENGTH,stdin);
+	sscanf(&buff[1], "%s", &name[0]);
+	remove_slash12(name);
+        i = recall_count(root, name, read_has_to_be);
+	if(i==0) {
+	    m++;
+	    printf("%s",&buff[0]);
+	    for(j=0;j<3;j++) {
+		printf("%s",aux[j]);
+	    }
 	}
+	n++;
     }
-    if(verbose) fprintf(stderr,"]\n");
+    if(verbose) fprintf(stderr,", %i of %i selected]\n",m, n);
     /*** end of pass 2 ***/
 
     if(verbose) fprintf(stderr,"[destroying data structures");
