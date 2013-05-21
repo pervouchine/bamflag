@@ -189,7 +189,7 @@ int main(int argc,char* argv[]) {
         fprintf(stderr, "%s -in <bam_file> -out <bam_file> [-u default = NO] [-v default = NO] [-m <mode> default = %i] [-lim n_reads, default = NONE]\n",argv[0], mode);
         fprintf(stderr, "-in:\tinput BAM file\n-out:\toutput BAM file\n-m:\t%i = mark NH tag, %i = mark FLAG field, %i = output only unique reads\n",UPDATE_NH_TAG,MARK_FLAG_FIELD,SUPPRESS_MULTI);
         fprintf(stderr, "-v:\tsuppress verbose output\n-u:\ttreat all reads as read1 (unstranded)\n-lim:\tprocess only first n_reads (for debugging)\n");
-        fprintf(stderr, "A short report on read counts is written to stderr.\n");
+        fprintf(stderr, "A short report on read counts is written to stderr\nPlease send your feedback to dp@crg.eu\n");
         exit(1);
     }
 
