@@ -1,4 +1,4 @@
-SAMDIR=~/samtools/
+SAMDIR=~/software/samtools/
 GCC=gcc
 OPTN=-lz
 
