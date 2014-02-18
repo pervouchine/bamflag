@@ -330,7 +330,7 @@ int main(int argc,char* argv[]) {
     for(i=0;i<8*(n_reads*2+1);i++) fprintf(stderr, "-");
     fprintf(stderr,"\n");
 
-    for(i=1;i<COUNT;i++) {
+    for(i=0;i<COUNT;i++) {
 	if(i==COUNT-1) fprintf(stderr,"%i+\t", i); else fprintf(stderr,"%i\t", i);
 	for(read = 0;read < n_reads; read++) {
 	    fprintf(stderr, "%i\t%2.1lf\t",count_table[read][i], (double)100*count_table[read][i]/read_count[read]);
