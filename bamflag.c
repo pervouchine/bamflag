@@ -31,8 +31,7 @@
 #define BAM_UNIQUE_MAP 0x800
 
 #define UPDATE_NH_TAG 1
-#define MARK_FLAG_FIELD 2 
-#define SUPPRESS_MULTI 3
+#define SUPPRESS_MULTI 2
 
 /*************************************************************************************************************************************************/
 

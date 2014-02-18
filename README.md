@@ -34,7 +34,7 @@ Prerequisites:
 
 ========================================================================
 
-This utility marks the uniquely mapped reads in a bam file by updating the FLAG field (bit 0x800) or by updating the NH tag (see SAMtools) or by reporting ONLY uniquely mapped reads
+This utility marks the uniquely mapped reads in a bam file by updating the NH tag and/or by reporting ONLY uniquely mapped reads
 
 It consists of two slightly different implementations, bamflag and bamflag2; 
   - bamflag is slightly faster but takes more memory
@@ -44,10 +44,12 @@ USAGE:
 ./bamflag -in <bam_file> -out <bam_file> [-u default = NO] [-v default = NO] [-m <mode> default = 1] [-lim n_reads, default = NONE]
 	-in:	input BAM file
 	-out:	output BAM file
-	-m:	1 = mark NH tag, 2 = mark FLAG field, 3 = output ONLY uniquely mapped reads
+	-m:	1 = mark NH tag, 2 = output ONLY uniquely mapped reads
 	-v:	suppress verbose output
 	-u:	treat all reads as read1 (unstranded)
 	-lim:	process only first n_reads (for debugging)
+
+* NOTE: the option of updating the FLAG field (bit 0x800) has been deprecated.
 
 A short report on read counts is written to stderr. Below is a short example of verbose output
 
@@ -58,28 +60,29 @@ A short report on read counts is written to stderr. Below is a short example of 
 [pass 2, reading wgEncodeCshlLongRnaSeqBjCellPapAlnRep1.bam, writing to output.bam]
 [destroying data structures]
 
-count   read1   (%)     read2   (%)     
+ count   read1   (%)     read2   (%)     
  ----------------------------------------
-1       97317030        88.6    99331858        88.6    
-2       7003492 6.4     6992832 6.2     
-3       2366796 2.2     2662251 2.4     
-4       1701016 1.5     1506784 1.3     
-5       396040  0.4     463460  0.4     
-6       488850  0.4     532668  0.5     
-7       177660  0.2     195202  0.2     
-8       146264  0.1     173976  0.2     
-9+      249223  0.2     279437  0.2     
+ 1       97317030        88.6    99331858        88.6    
+ 2       7003492 6.4     6992832 6.2     
+ 3       2366796 2.2     2662251 2.4     
+ 4       1701016 1.5     1506784 1.3     
+ 5       396040  0.4     463460  0.4     
+ 6       488850  0.4     532668  0.5     
+ 7       177660  0.2     195202  0.2     
+ 8       146264  0.1     173976  0.2     
+ 9+      249223  0.2     279437  0.2     
  ----------------------------------------
-total   109846371       100     112138468       100     
-[completed in 5319 seconds]
+ total   109846371       100     112138468       100     
+ [completed in 5319 seconds]
 
 ========================================================================
 
+UPDATES:
 
 2013-04-12
 	Corrected: unmapped reads and not counted how many time they are present
 
 2014-02-18
-	A bug with counting unmapped reads as being uniquely mapped has been fixed, thanks to Emilio Palumbo!
-
+	1. A bug with counting unmapped reads as being uniquely mapped has been fixed, thanks to Emilio Palumbo!
+	2. the option of updating the FLAG field (bit 0x800) has been deprecated.
 
