@@ -41,7 +41,8 @@ It consists of two slightly different implementations, bamflag and bamflag2;
   - bamflag2 is less fast but takes less memory
 
 USAGE:
-./bamflag -in <bam_file> -out <bam_file> [-u default = NO] [-v default = NO] [-m <mode> default = 1] [-lim n_reads, default = NONE]
+
+	./bamflag -in <bam_file> -out <bam_file> [-u default = NO] [-v default = NO] [-m <mode> default = 1] [-lim n_reads, default = NONE]
 	-in:	input BAM file
 	-out:	output BAM file
 	-m:	1 = mark NH tag, 2 = output ONLY uniquely mapped reads
@@ -60,20 +61,20 @@ A short report on read counts is written to stderr. Below is a short example of 
 [pass 2, reading wgEncodeCshlLongRnaSeqBjCellPapAlnRep1.bam, writing to output.bam]
 [destroying data structures]
 
- count   read1   (%)     read2   (%)     
- ----------------------------------------
- 1       97317030        88.6    99331858        88.6    
- 2       7003492 6.4     6992832 6.2     
- 3       2366796 2.2     2662251 2.4     
- 4       1701016 1.5     1506784 1.3     
- 5       396040  0.4     463460  0.4     
- 6       488850  0.4     532668  0.5     
- 7       177660  0.2     195202  0.2     
- 8       146264  0.1     173976  0.2     
- 9+      249223  0.2     279437  0.2     
- ----------------------------------------
- total   109846371       100     112138468       100     
- [completed in 5319 seconds]
+	count   read1   (%)     read2   (%)     
+	----------------------------------------
+	1       97317030        88.6    99331858        88.6    
+	2       7003492 6.4     6992832 6.2     
+	3       2366796 2.2     2662251 2.4     
+	4       1701016 1.5     1506784 1.3     
+	5       396040  0.4     463460  0.4     
+	6       488850  0.4     532668  0.5     
+	7       177660  0.2     195202  0.2     
+	8       146264  0.1     173976  0.2     
+	9+      249223  0.2     279437  0.2     
+	----------------------------------------
+	total   109846371       100     112138468       100     
+	[completed in 5319 seconds]
 
 ========================================================================
 
