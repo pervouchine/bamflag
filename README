@@ -77,3 +77,8 @@ total   109846371       100     112138468       100
 
 2013-04-12
 	Corrected: unmapped reads and not counted how many time they are present
+
+2014-02-18
+	A bug with counting unmapped reads as being uniquely mapped has been fixed, thanks to Emilio Palumbo!
+
+

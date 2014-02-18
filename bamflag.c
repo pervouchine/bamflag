@@ -186,9 +186,10 @@ int main(int argc,char* argv[]) {
     timestamp = time(NULL);
 
     if(argc==1) {
-	fprintf(stderr, "This utility counts the number of hits (NH) in a bam file and marks reads by updating the NH tag or FLAG field (bit 0x800) (see SAMtools)\n", argv[0]);
+	fprintf(stderr, "This utility counts the number of hits (NH) in a bam file and marks reads by updating the NH tag\n", argv[0]);
+	fprintf(stderr, "NOTE: updating the FLAG field (bit 0x800) has been deprecated\n");
         fprintf(stderr, "%s -in <bam_file> -out <bam_file> [-u default = NO] [-v default = NO] [-m <mode> default = %i] [-lim n_reads, default = NONE]\n",argv[0], mode);
-	fprintf(stderr, "-in:\tinput BAM file\n-out:\toutput BAM file\n-m:\t%i = mark NH tag, %i = mark FLAG field, %i = output only unique reads\n",UPDATE_NH_TAG,MARK_FLAG_FIELD,SUPPRESS_MULTI);
+	fprintf(stderr, "-in:\tinput BAM file\n-out:\toutput BAM file\n-m:\t%i = mark NH tag, %i = output only uniquely mapped reads\n",UPDATE_NH_TAG, SUPPRESS_MULTI);
 	fprintf(stderr, "-v:\tsuppress verbose output\n-u:\ttreat all reads as read1 (single-end)\n-lim:\tprocess only first n_reads (for debugging)\n");
 	fprintf(stderr, "A short report on read counts is written to stderr\nPlease send your feedback to dp@crg.eu\n");
         exit(1);
@@ -228,7 +229,6 @@ int main(int argc,char* argv[]) {
     bam_header_write(bam_output, header);
 
     if(verbose && (mode == UPDATE_NH_TAG))   fprintf(stderr,"[mode: update NH tag]\n");
-    if(verbose && (mode == MARK_FLAG_FIELD)) fprintf(stderr,"[mode: mark FLAG field]\n");
     if(verbose && (mode == SUPPRESS_MULTI))  fprintf(stderr,"[mode: output only uniquely-mapped reads]\n");
 
 
@@ -247,8 +247,10 @@ int main(int argc,char* argv[]) {
 
 	pc =  bam1_qname(b);
         remove_slash12(pc);
-	add_str(&root, pc, read);
-	if(!(c->flag & BAM_FUNMAP)) read_count[read]++;
+	if(!(c->flag & BAM_FUNMAP)) {
+	    add_str(&root, pc, read);
+	    read_count[read]++;
+	}
 	n++;
 	if(limit>0 && n>limit) break;
     }
@@ -291,10 +293,10 @@ int main(int argc,char* argv[]) {
 	    }
 	}
 
-	if(mode == MARK_FLAG_FIELD) {
+/*	if(mode == MARK_FLAG_FIELD) {
 	    c->flag = (c->flag | BAM_UNIQUE_MAP) ^ BAM_UNIQUE_MAP;
 	    if(i==1) c->flag = c->flag | BAM_UNIQUE_MAP;
-	}
+	} */
 
 	if(mode == SUPPRESS_MULTI) {
 	    if(i==1) bam_write1(bam_output, b);
