@@ -1,40 +1,23 @@
-SAMDIR=~/software/samtools/
 GCC=gcc
 OPTN=-lz
+SAMTOOLS_DIR=samtools-0.1.18/
 
 .PHONY: all
 
 all: bamflag bamflag2 
 
-EXPORT = bamflag-1.2
+${SAMTOOLS_DIR}libbam.a:
+	wget http://sourceforge.net/projects/samtools/files/samtools/0.1.18/samtools-0.1.18.tar.bz2
+	tar -xf samtools-0.1.18.tar.bz2
+	rm -f samtools-0.1.18.tar.bz2
+	make -C samtools-0.1.18 all
+        # If SAMTOOLS is already installed, you might want to update SAMTOOLS_DIR path without installing a fresh copy
 
-export:
-	mkdir $(EXPORT)/
-	cp -f *.c $(EXPORT)/
-	cp -f *.h $(EXPORT)/
-	cp -f *.sh $(EXPORT)/
-	cp -f README $(EXPORT)/
-	cp -f VERSION $(EXPORT)/
-	cp -f LICENCE $(EXPORT)/
-	cp makefile $(EXPORT)/
-	tar -cf $(EXPORT).tar $(EXPORT)/
-	gzip $(EXPORT).tar
-	rm -f -r $(EXPORT)/
-	mv $(EXPORT).tar.gz ..
+bamflag: bamflag.c $(SAMTOOLS_DIR)libbam.a
+	$(GCC) $(OPTN) -I $(SAMTOOLS_DIR) bamflag.c $(SAMTOOLS_DIR)libbam.a -o bamflag
 
-$(SAMDIR)libbam.a:
-	# You need to install samtools
-	# Get it by svn:
-	# svn co https://samtools.svn.sourceforge.net/svnroot/samtools/trunk/samtools
-	# enter the dir and type 'make all'
-	# don't forget to update the SAMDIR varibale in this makefile
-	exit 1	
-
-bamflag: bamflag.c $(SAMDIR)libbam.a
-	$(GCC) $(OPTN) -I $(SAMDIR) bamflag.c $(SAMDIR)libbam.a -o bamflag
-
-bamflag2: bamflag2.c $(SAMDIR)libbam.a
-	$(GCC) $(OPTN) -I $(SAMDIR) bamflag2.c $(SAMDIR)libbam.a -o bamflag2
+bamflag2: bamflag2.c $(SAMTOOLS_DIR)libbam.a
+	$(GCC) $(OPTN) -I $(SAMTOOLS_DIR) bamflag2.c $(SAMTOOLS_DIR)libbam.a -o bamflag2
 
 clean:
 	rm -f -r bamflag bamflag2
